@@ -4,7 +4,7 @@ from tkinter import filedialog, Tk, Button, Label, Frame, Checkbutton, IntVar, C
 
 def install(file_path, silent, command):
     try:
-        subprocess.run(f"{command}", shell=True)
+        subprocess.Popen(f"{command}", creationflags=subprocess.CREATE_NEW_CONSOLE, shell=True)
         print(f"{file_path} installed successfully.")
     except Exception as e:
         print(f"Failed to install {file_path}. Error: {str(e)}")
