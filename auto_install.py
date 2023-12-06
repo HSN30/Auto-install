@@ -8,6 +8,7 @@ class AutoInstaller:
         self.file_paths = []
         self.root = Tk()
         self.root.title("Auto Install")
+        self.continue_installation = True
         self.setup_ui()
 
     def setup_ui(self):
@@ -22,14 +23,17 @@ class AutoInstaller:
         canvas.bind_all("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1*(event.delta/120)), "units"))
         button_frame = Frame(self.root)
         button_frame.pack(side="top", fill="x")
-        Button(button_frame, text='Add File', command=self.select_file).grid(row=0, column=0, pady=5)
-        Button(button_frame, text='Start Installation', command=self.start_installation).grid(row=1, column=0, pady=5)
+        Button(button_frame, text='Add File', command=self.select_file, width=20).grid(row=0, column=0, pady=5)
+        Button(button_frame, text='Start Installation', command=self.start_installation, width=20).grid(row=1, column=0, pady=5)
+        Button(button_frame, text='Stop', command=self.stop_installation, width=20).grid(row=2, column=0, pady=5)
         self.load_file_paths()
         self.update_label()
-        self.root.geometry('650x600')
+        self.root.geometry('690x600')
         self.root.mainloop()
 
     def install(self, file_path, silent, command):
+        if not self.continue_installation:
+            return False
         try:
             subprocess.run(f"{command}", creationflags=subprocess.CREATE_NEW_CONSOLE, shell=True)
             print(f"{file_path} installed successfully.")
@@ -46,9 +50,10 @@ class AutoInstaller:
             self.save_file_paths()
 
     def start_installation(self):
+        self.continue_installation = True
         threads = []
         for file_path, silent, enabled in self.file_paths:
-            if enabled.get():
+            if enabled.get() and self.continue_installation:
                 command = self.get_command(file_path, silent.get())
                 if command:
                     t = threading.Thread(target=self.install, args=(file_path, silent.get(), command))
@@ -56,6 +61,9 @@ class AutoInstaller:
                     threads.append(t)
         for t in threads:
             t.join()
+
+    def stop_installation(self):
+        self.continue_installation = False
 
     def get_command(self, file_path, silent):
         if file_path.endswith('.exe'):
